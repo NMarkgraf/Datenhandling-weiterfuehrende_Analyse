@@ -1,0 +1,14 @@
+# Versionshinweise:
+
+* Autor des Orginal-Skripts: Prof. Dr. Schwarz
+    - Danke für die Überlassung des Skripts!
+* Datum erstellt: `r Sys.Date()`
+* R Version: `r getRversion()`
+* Benutze Pakete und deren Version:
+    - `mosaic` Version: `r packageVersion("mosaic")`
+    - `vcd` Version: `r packageVersion("vcd")`
+    - `gplots` Version: `r packageVersion("gplots")`
+    - `effects` Version: `r packageVersion("effects")`
+    - `multcomp` Version: `r packageVersion("multcomp")`
+    - `lmtest` Version: `r packageVersion("lmtest")`
+    - `car` Version: `r packageVersion("car")`

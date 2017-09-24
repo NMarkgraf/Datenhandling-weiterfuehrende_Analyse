@@ -1,56 +1,28 @@
 ---
-title: "Weiterführende Datenanalyse mit R"
-subtitle: "Unterlage zum Workshop auf den Dozententagen am 30.01.2017"
-author: "Prof. Dr. Joachim Schwarz"
-date: ''
-output:
-  pdf_document:
-    fig_height: 3
-    fig_width: 5
-    includes:
-          in_header: header.tex
+title: "Methoden quantitativer Forschung"
+subtitle: "Weiterführende Datenanalyse mit R"
+author: "Dipl.-Math. Norman Markgraf"
+date: 'Regionale FOM Dozententagen in Frankfurt 2017'
+lang: de-de
+fontsize: 10pt
 documentclass: article
-classoption: a4paper, 10pt
-
-
-
+classoption: onside
 ---
 
-\setstretch{1.44}
-\begin{center}
-\includegraphics{ifes.jpg}
-\end{center}
+```{r setup, echo=FALSE, warning=FALSE, include=FALSE}
+library(knitr)
+opts_chunk$set(
+  echo = TRUE,
+  background='#E0E0E0',
+  cache = TRUE,
+  tidy = TRUE,
+  fig.align = "center",
+  #    fig.asp = .618,
+  message = FALSE,
+  warning = FALSE,
+  width.cutoff=78
+)
 
-\tableofcontents
-\newpage  
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
-```
-
-\vspace{2cm}
-# Vorbereitungen
-Vor der eigentlichen Analysen müssen einige Pakete aktiviert sowie der Datensatz eingelesen werden.
-\newline
-\newline
-__RStudio und RCommander__  
-Falls Sie RStudio benutzen, dann öffnen Sie zur Eingabe der Skriptbefehle bitte ein neues R-Skriptfenster (File-->New File-->R Script). Falls Sie den RCommander benutzen, können Sie sämtliche Skriptbefehle in das Skriptfenster (oberes Fenster) eingeben.
-
-__Pakete aktivieren__  
-Erforderlich sind die Pakete \texttt{mosaic, vcd, gplot, effects, multcomp, lmtest, car}. Sämtliche Pakete werden mit \texttt{library(paketname)} bzw. \texttt{require(paketname)} eingebunden, Beispiel: \texttt{library(mosaic)}.  
-Falls dabei die Fehlermeldung "package does not exist" erscheint, muss das Paket zunächst mit \texttt{install.packages(\dq paketname\dq, dependencies=TRUE)} installiert werden, Beispiel: \texttt{install.packages(\dq gplot\dq, dependencies=TRUE)}. Für die Installation ist eine Internetverbindung erforderlich. Nach der Installation muss der library-Befehl zur Aktivierung ausgeführt werden.
-
-```{r eval=FALSE}
-library(mosaic) # Einheitliche Syntax
-library(vcd) # Zusammenhangsmaße für nominal skalierte Merkmale
-library(gplots) # Plot für arithmetische Mittelwerte
-library(effects) # Effektplots für ANOVA-Modelle
-library(multcomp) # Paarweise Vergleiche in der ANOVA
-library(lmtest) # Regressionsdiagnostik
-library(car) # Quantile-Quantile-Plot
-```
-```{r include = FALSE}
 library(mosaic)
 library(vcd)
 library(gplots) 
@@ -60,14 +32,53 @@ library(lmtest)
 library(car)
 ```
 
+
+# Vorbereitungen
+
+Vor der eigentlichen Analysen müssen einige Pakete aktiviert sowie der Datensatz eingelesen werden.
+
+__RStudio__
+
+Falls Sie RStudio benutzen, dann öffnen Sie zur Eingabe der Skriptbefehle bitte ein neues R-Skriptfenster (File-->New File-->R Script).
+
+__Pakete aktivieren__
+
+Erforderlich sind die Pakete `mosaic`, `vcd`, `gplot`, `effects`, `multcomp`, `lmtest`, `car`.
+Sämtliche Pakete werden mit `library(paketname)` eingebunden, Beispiel: `library(mosaic)`.  
+Falls dabei die Fehlermeldung "package does not exist" erscheint, muss das Paket zunächst mit
+
+```{r eval=FALSE}
+install.packages("paketname", dependencies=TRUE)
+```
+
+installiert werden, Beispiel: 
+
+```{r eval=FALSE}
+install.packages("gplot", dependencies=TRUE)
+```
+
+Für die Installation ist eine Internetverbindung erforderlich. Nach der Installation muss der library-Befehl zur Aktivierung ausgeführt werden.
+
+```{r library_laden, eval=FALSE}
+library(mosaic) # Einheitliche Syntax
+library(vcd) # Zusammenhangsmaße für nominal skalierte Merkmale
+library(gplots) # Plot für arithmetische Mittelwerte
+library(effects) # Effektplots für ANOVA-Modelle
+library(multcomp) # Paarweise Vergleiche in der ANOVA
+library(lmtest) # Regressionsdiagnostik
+library(car) # Quantile-Quantile-Plot
+```
+
 __Daten einlesen__  
-Datensätze können auf verschiedene Arten eingelesen werden. Der Trinkgelddatensatz ist bereits in R enthalten, im Paket reshape2. Falls die Fehlermeldung erscheint, dass das Paket \texttt{reshape2} nicht existiert, so muss dies vorab installiert werden, vgl. hierzu die obigen Ausführungen. 
+Datensätze können auf verschiedene Arten eingelesen werden. Der Trinkgelddatensatz ist bereits in R enthalten, im Paket reshape2. Falls die Fehlermeldung erscheint, dass das Paket `reshape2` nicht existiert, so muss dies vorab installiert werden, vgl. hierzu die obigen Ausführungen. 
+
 ```{r}
 data(tips, package="reshape2")
 ```
 
 __Datenstruktur prüfen__  
 Es empfiehlt sich, vor jeder Analyse den Datensatz zu betrachten. Von Relevanz sind hier die Datenstrukturen, d.h. Variablennamen und Variablentypen, die Größe des Datensatzes sowie die ersten und letzten paar Zeilen.
+
 ```{r}
 # Datenstruktur
 str(tips)
@@ -80,36 +91,40 @@ tail(tips)
 ```
 
 # $\protect\chi^{2}$-Test
-Der $\chi^{2}$-Test (sprich: Chi-Quadrat-Test) wird verwendet, um auf Unabhängigkeit zweier Mermale bzw. auf Homogenität der (Häufigkeits-)Verteilungen zweier kategorieller, i.d.R. nominal skalierter Merkmale zu prüfen. Die zugehörige Nullhypothese lautet \emph{$H_{0}:$ Die beiden Merkmale sind unabhängig.}  
+
+Der $\chi^{2}$-Test (sprich: Chi-Quadrat-Test) wird verwendet, um auf Unabhängigkeit zweier Mermale bzw. auf Homogenität der (Häufigkeits-)Verteilungen zweier kategorieller, i.d.R. nominal skalierter Merkmale zu prüfen. Die zugehörige Nullhypothese lautet dann:
+
+*$H_{0}:$ Die beiden Merkmale sind unabhängig.*  
 
 __Beispiel (Trinkgeld-Datensatz)__  
-Es ist zu prüfen: \emph{$H_{0}:$ Das Rauchverhalten ist vom Geschlecht unabhängig.}  
+Es ist zu prüfen: *$H_{0}:$ Das Rauchverhalten ist vom Geschlecht unabhängig.*
 
 ```{r}
 xchisq.test(tally(sex~smoker, data=tips))
 ```
 
-Zusammenhangsmaße wie den Kontingenzkoeffizienten oder Cramérs V erhält man mit nachfolgendem Befehl (das Paket \texttt{vcd} muss aktiviert sein):
+Zusammenhangsmaße wie den Kontingenzkoeffizienten oder Cramérs V erhält man mit nachfolgendem Befehl (das Paket `vcd` muss aktiviert sein):
 
 ```{r}
 assocstats(tally(sex~smoker, data=tips))
 ```
 
 __Übung__  
-Testen Sie die Nullhypothese \emph{$H_{0}:$ Der Essenstag ist vom Geschlecht des Rechnungsbezahlers unabhängig} und bestimmen Sie die Stärke des Zusammenhangs mit dem Kontingenzkoeffizienten.  
+Testen Sie die Nullhypothese *$H_{0}:$ Der Essenstag ist vom Geschlecht des Rechnungsbezahlers unabhängig} und bestimmen Sie die Stärke des Zusammenhangs mit dem Kontingenzkoeffizienten.  
 
 # t-Test
-Der t-Test wird verwendet, um Mittelwerte metrisch skalierter Merkmale zu prüfen. Dabei kann entweder der Mittelwert einer Messreihe mit einem vorgegebenen Wert verglichen werden (Beispiel-\emph{$H_{0}:$ Das Alter aller FOM-Studierenden ist im Durchschnitt 25 Jahre}), oder die Mittelwerte zweier Messreihen werden miteinander verglichen (Beispiel-\emph{$H_{0}:$ Studentinnen und Studenten an der FOM sind im Durchschnitt gleich alt}). Im Falle zweier Stichproben wird zwischen abhängigen und unabhängigen Stichproben unterschieden.  
+Der t-Test wird verwendet, um Mittelwerte metrisch skalierter Merkmale zu prüfen. Dabei kann entweder der Mittelwert einer Messreihe mit einem vorgegebenen Wert verglichen werden (Beispiel-*$H_{0}:$ Das Alter aller FOM-Studierenden ist im Durchschnitt 25 Jahre*), oder die Mittelwerte zweier Messreihen werden miteinander verglichen (Beispiel-*$H_{0}:$ Studentinnen und Studenten an der FOM sind im Durchschnitt gleich alt*). Im Falle zweier Stichproben wird zwischen abhängigen und unabhängigen Stichproben unterschieden.  
 
 Zwei Stichproben sind unabhängig, wenn an verschiedenen Subjekten das gleiche Merkmal erhoben wird. Beispiel: Alter (gleiches Merkmal) bei Studentinnen und Studenten (verschiedene Subjekte).  
 
 Zwei Stichproben sind abhängig, wenn verschiedene Merkmale an den gleichen Subjekten erhoben werden. Beispiel: Blutdruck vor und nach einer Behandlung (verschiedene Merkmale) an einer Gruppe von Patienten (gleiche Subjekte).  
 
-Ein t-Test kann mit einseitiger und zweiseitiger Nullhypothese durchgeführt werden. Bei einer zweiseitigen Nullhypothese wird auf Gleichheit getestet (Beispiel-\emph{$H_{0}: \mu=0$}), die Nullhypothese wird bei starker Abweichung nach oben und unten verworfen. Bei einer einseitigen Nullhypothese wird auf kleinergleich oder größergleich getestet (Beispiel-\emph{$H_{0}: \mu \le 0$} oder \emph{$H_{0}: \mu \ge 0$}), die Nullhypothese wird bei starker Abweichung nach oben oder unten verworfen.
+Ein t-Test kann mit einseitiger und zweiseitiger Nullhypothese durchgeführt werden. Bei einer zweiseitigen Nullhypothese wird auf Gleichheit getestet (Beispiel-*$H_{0}: \mu=0$*), die Nullhypothese wird bei starker Abweichung nach oben und unten verworfen. Bei einer einseitigen Nullhypothese wird auf kleinergleich oder größergleich getestet (Beispiel-*$H_{0}: \mu \le 0$* oder *$H_{0}: \mu \ge 0$*), die Nullhypothese wird bei starker Abweichung nach oben oder unten verworfen.
 
 ## Einstichproben-t-Test
 __Beispiel (Trinkgeld-Datensatz)__  
-Es ist zu prüfen \emph{$H_{0}:$ Es wird kein Trinkgeld gegeben ($H_{0}: \mu(tip) = 0$)}. Zunächst sollte mit einer grafischen Darstellung und deskriptiven Statistiken begonnen werden.
+Es ist zu prüfen *$H_{0}:$ Es wird kein Trinkgeld gegeben ($H_{0}: \mu(tip) = 0$)*. Zunächst sollte mit einer grafischen Darstellung und deskriptiven Statistiken begonnen werden.
+
 ```{r}
 bwplot(~tip, data=tips)
 favstats(~tip, data=tips)
@@ -123,25 +138,27 @@ t.test(~tip, data=tips)
 
 Im Output finden sich zunächst der t-Wert (durchschnittliches Trinkgeld dividiert durch den Standardfehler), die Freiheitsgrade (Stichprobenumfang weniger 1) und der p-Wert (Wahrscheinlichkeit für t unter der Nullhypothese). Weiter finden sich ein 95%-Konfidenzintervall für die Trinkgeldhöhe sowie das durchschnittliche Trinkgeld.  
 
-Die Funktion \texttt{t.test} führt immer einen zweiseitigen Test durch. Soll ein einseitiger Test durchgeführt werden, so muss dies durch einen zusätzlichen Übergabeparameter kenntlich gemacht werden. Um von diesem die genaue Syntax zu erfahren kann die R-Hilfe zur Funktion aufgerufen werden.
+Die Funktion `t.test` führt immer einen zweiseitigen Test durch. Soll ein einseitiger Test durchgeführt werden, so muss dies durch einen zusätzlichen Übergabeparameter kenntlich gemacht werden. Um von diesem die genaue Syntax zu erfahren kann die R-Hilfe zur Funktion aufgerufen werden.
+
 ```{r eval=FALSE}
 ?t.test
 ```
 
 __Beispiel (Trinkgeld-Datensatz)__  
-Es ist zu prüfen \emph{$H_{0}:$ Es wird mindestens 0 Dollar Trinkgeld gegeben ($H_{0}: \mu(tip) \ge 0$)}
-Laut der Beschreibung der Funktionshilfe erwartet R die Sepzifikation der Alternativhypothese. Der zugehörige Übergabeparameter lautet \texttt{alternative=\dq less\dq} und damit lautet der R-Befehl:
+Es ist zu prüfen *$H_{0}:$ Es wird mindestens 0 Dollar Trinkgeld gegeben ($H_{0}: \mu(tip) \ge 0$)*
+Laut der Beschreibung der Funktionshilfe erwartet R die Sepzifikation der Alternativhypothese. Der zugehörige Übergabeparameter lautet `alternative="less"` und damit lautet der R-Befehl:
 ```{r}
 t.test(~tip, data=tips, alternative="less")
 ```
 
 __Übung__  
-1. Testen Sie die Nullhypothese \emph{$H_{0}:$ Es wird höchstens zwei Dollar Trinkgeld gegeben ($H_{0}: \mu(tip) \le 2$)}.  
+1. Testen Sie die Nullhypothese *$H_{0}:$ Es wird höchstens zwei Dollar Trinkgeld gegeben ($H_{0}: \mu(tip) \le 2$)*.  
 2. Bestimmen Sie ein 90%-Konfidenzintervall für das durchschnittliche Trinkgeld.  
 
 ## Zweistichproben-t-Test  
 __Beispiel (Trinkgeld-Datensatz)__  
-Es ist zu prüfen \emph{$H_{0}:$ Männer und Frauen geben gleich viel Trinkgeld ($H_{0}: \mu(tip_{Männer})-\mu(tip_{Frauen})= 0$)}. Es empfiehlt sich, zunächst mit einer grafischen Darstellung sowie deskriptiven Statistiken zu starten. Als grafische Darstellungen bieten sich Boxplots und Mittelwertplots an.
+Es ist zu prüfen *$H_{0}:$ Männer und Frauen geben gleich viel Trinkgeld ($H_{0}: \mu(tip_{Männer})-\mu(tip_{Frauen})= 0$)*. Es empfiehlt sich, zunächst mit einer grafischen Darstellung sowie deskriptiven Statistiken zu starten. Als grafische Darstellungen bieten sich Boxplots und Mittelwertplots an.
+
 ```{r}
 bwplot(tip~sex, data=tips) # Boxplot
 plotmeans(tip~sex, data=tips) # Mittelwertplot mit 95% Konfidenzintervall
@@ -155,7 +172,7 @@ t.test(tip~sex, data=tips)
 ```
 
 __Übung__  
-Testen Sie die Nullhypothese \emph{$H_{0}:$ Das durchschnittliche Trinkgeld ist genauso hoch wie die durchschnittliche Restaurantrechnung ($H_{0}: \mu(tip) = \mu(totalbill)$)}.  
+Testen Sie die Nullhypothese *$H_{0}:$ Das durchschnittliche Trinkgeld ist genauso hoch wie die durchschnittliche Restaurantrechnung ($H_{0}: \mu(tip) = \mu(totalbill)$)*.  
 
 # Varianzanalyse
 Sollen mehr als zwei Mittelwerte miteinander verglichen werden, dann muss anstelle eines t-Tests eine Varianzanalyse durchgeführt werden.
@@ -164,7 +181,7 @@ Mit einer Varianzanalyse ist es möglich, sowohl mehr als zwei Mittelwerte mitei
 
 ## Einfaktorielle Varianzanalyse
 __Beispiel (Trinkgeld-Datensatz)__  
-Es ist zu prüfen \emph{$H_{0}:$ Die durchschnittlichen Restaurantrechnungen sind an den vier verschiedenen Tagen (Donnerstag bis Sonntag) gleich hoch.} Zunächst werden Grafiken und deskriptive Statistiken erstellt.
+Es ist zu prüfen *$H_{0}:$ Die durchschnittlichen Restaurantrechnungen sind an den vier verschiedenen Tagen (Donnerstag bis Sonntag) gleich hoch.* Zunächst werden Grafiken und deskriptive Statistiken erstellt.
 ```{r}
 bwplot(total_bill~day, data=tips) # Boxplot
 plotmeans(total_bill~day, data=tips) # Mittelwertplot
@@ -191,9 +208,10 @@ Bei mehrfaktoriellen Varianzanalysen können sowohl die Haupteffekte als auch di
 
 __Beispiel (Trinkgeld-Datensatz)__  
 Folgende drei Hypothesen sind zu prüfen:  
-\emph{$H_{01}:$ Das Geschlecht des Rechnungsbezahlers hat keinen Einfluss auf die Rechnungshöhe.}  
-\emph{$H_{02}:$ Das Rauchverhalten des Rechnungsbezahlers hat keinen Einfluss auf die Rechnungshöhe.}  
-\emph{$H_{03}:$ Das gibt keine Wechselwirkung zwischen Geschlecht und Rauchverhalten des Rechnungsbezahlers.}  
+
+*$H_{01}:$ Das Geschlecht des Rechnungsbezahlers hat keinen Einfluss auf die Rechnungshöhe.*
+*$H_{02}:$ Das Rauchverhalten des Rechnungsbezahlers hat keinen Einfluss auf die Rechnungshöhe.*
+*$H_{03}:$ Das gibt keine Wechselwirkung zwischen Geschlecht und Rauchverhalten des Rechnungsbezahlers.*
 
 ```{r}
 anovamodel <- aov(total_bill~sex*smoker, data=tips)
@@ -217,7 +235,7 @@ plot(allEffects(anovamodel))
 ```
 
 __Übung__  
-Führen Sie eine zweifaktorielle Varianzanalyse für die Zielgröße \texttt{tips} mit den Faktoren \texttt{time} und \texttt{smoker} durch.
+Führen Sie eine zweifaktorielle Varianzanalyse für die Zielgröße  `{tips` mit den Faktoren  `{time` und `smoker` durch.
 
 
 # Korrelationsanalyse
@@ -244,13 +262,14 @@ cor(tip ~ total_bill, data=tips, method="spearman") # Spearman-Korrelation
 Wie die Korrelationsanalyse kann auch die Regression verwendet werden, um den (linearen) Zusammenhang mindestens zweier Merkmale zu untersuchen. Im Gegensatz zur Korrelation gibt es hier eine (theoretische) Fundierung, aufgrund der angenommen wird, dass eine oder mehrere unabhängige Variablen $X_{1},\ldots,X_{k}$ (davon mindestens eine metrisch) einen Einfluss auf eine metrische abhängige Variable $Y$ haben, d.h. $Y = f(X_{1},\ldots,X_{k})$.   
 
 Im Falle einer linearen Regression ist $f()$ eine lineare Funktion. Es gilt:
+
 $$Y_{i}=\beta_0+\beta_1\cdot X_1 + \epsilon_i$$ für eine einfache lineare Regression, und $$Y_{i}=\beta_0+\beta_1\cdot X_1 + \ldots + \beta_k\cdot X_k + \epsilon_i$$ für eine multiple lineare Regression.  
 
 ## Durchführung einer einfachen linearen Regression
 Bei einer einfachen linearen Regression wird der Einfluss von genau einer unabhängigen Variablen auf die Zielgröße untersucht.   
 
 __Beispiel (Trinkgeld-Datensatz)__
-Es ist zu prüfen \emph{$H_{0}:$ Die Höhe der Restaurantrechnung hat keinen Einfluss auf die Höhe des Trinkgelds ($H_0: \beta_1 = 0$).}  
+Es ist zu prüfen *{$H_{0}:$ Die Höhe der Restaurantrechnung hat keinen Einfluss auf die Höhe des Trinkgelds ($H_0: \beta_1 = 0$).}  
 
 Die zugehörige Regressionsgleichung lautet:
 $$tip_i=\beta_0+\beta_1\cdot total\_bill_i+\epsilon_i$$
@@ -305,6 +324,7 @@ Wie sieht es mit den Annahmen aus? Folgende Annahmen werden üblicherweise gepr�
 
 __Linearität__  
 Die Linearität des Zusammenhangs wurde bereits weiter oben mit Hilfe des Scatterplots "überprüft". Ergänzend kann noch ein RESET-Test durchgeführt werden.
+
 ```{r}
 # RESET-Test auf Fehlspezifikation
 resettest(linreg, 2:4, type="fitted")
@@ -312,6 +332,7 @@ resettest(linreg, 2:4, type="fitted")
 
 __Normalverteilung der Residuen__  
 Zur Überprüfung der Normalverteilung der Residuen zeichnen wir ein Histogramm. Die Residuen können über den Befehl `resid()` aus einem linearen Modell extrahiert werden. Außerdem wird noch ein Shapiro-Qilk-Test durchgeführt und ein QQ-Diagramm erzeugt. Hier scheint die Annahme erfüllt zu sein:
+
 ```{r}
 # Histogramm
 histogram( ~ resid(linreg))
@@ -353,8 +374,8 @@ Bei mehr als einer unabhängigen Variablen liegt eine multiple Regression vor. E
 
 __Beispiel (Trinkgeld-Datensatz)__  
 Folgende zwei Hypothesen sind zu prüfen:  
-\emph{$H_{01}:$ Die Höhe der Restaurantrechnung hat keinen Einfluss auf die Höhe des Trinkgelds ($H_0: \beta_1 = 0$).}   
-\emph{$H_{02}:$ Die Gruppengröße hat keinen Einfluss auf die Höhe des Trinkgelds ($H_0: \beta_2 = 0$).}  
+*{$H_{01}:$ Die Höhe der Restaurantrechnung hat keinen Einfluss auf die Höhe des Trinkgelds ($H_0: \beta_1 = 0$).*   
+*{$H_{02}:$ Die Gruppengröße hat keinen Einfluss auf die Höhe des Trinkgelds ($H_0: \beta_2 = 0$).*
 
 Die zugehörige Regressionsgleichung lautet:
 $$tip_i=\beta_0+\beta_1\cdot total\_bill_i+\beta_2\cdot size_i + \epsilon_i$$
@@ -385,8 +406,6 @@ Prüfen Sie für diese multiple lineare Regression die übrigen Modellannahmen.
 
 
 
-
-
 \newpage
 
 # Literaturhinweise
@@ -402,7 +421,5 @@ Ligges, U. (2008), Programmieren mit R, 3. Auflage, Berlin
 Luhmann, M. (2010): R für Einsteiger, Weinheim.
 
 
-# Versionshinweise
-Datum erstellt: `r Sys.Date()`  
-R Version: `r getRversion()`  
-`mosaic` Version: `r packageVersion("mosaic")`  
+```{r child="Epilog.Rmd"}
+```

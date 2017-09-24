@@ -1,0 +1,11 @@
+pdf_document:
+    fig_height: 3
+    fig_width: 5
+    keep_tex: no
+    includes:
+        in_header: header.tex
+        before_body: before.tex
+    pandoc_args: [
+        "-V papersize=a4",
+        "-V lang=de"
+    ]
