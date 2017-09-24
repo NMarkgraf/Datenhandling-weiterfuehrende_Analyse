@@ -7,6 +7,7 @@ lang: de-de
 fontsize: 10pt
 documentclass: article
 classoption: onside
+md_extensions: +raw_tex
 ---
 
 ```{r setup, echo=FALSE, warning=FALSE, include=FALSE}
@@ -90,6 +91,7 @@ head(tips)
 tail(tips)
 ```
 
+
 # $\protect\chi^{2}$-Test
 
 Der $\chi^{2}$-Test (sprich: Chi-Quadrat-Test) wird verwendet, um auf Unabhängigkeit zweier Mermale bzw. auf Homogenität der (Häufigkeits-)Verteilungen zweier kategorieller, i.d.R. nominal skalierter Merkmale zu prüfen. Die zugehörige Nullhypothese lautet dann:
@@ -113,7 +115,9 @@ assocstats(tally(sex~smoker, data=tips))
 __Übung__  
 Testen Sie die Nullhypothese *$H_{0}:$ Der Essenstag ist vom Geschlecht des Rechnungsbezahlers unabhängig} und bestimmen Sie die Stärke des Zusammenhangs mit dem Kontingenzkoeffizienten.  
 
+
 # t-Test
+
 Der t-Test wird verwendet, um Mittelwerte metrisch skalierter Merkmale zu prüfen. Dabei kann entweder der Mittelwert einer Messreihe mit einem vorgegebenen Wert verglichen werden (Beispiel-*$H_{0}:$ Das Alter aller FOM-Studierenden ist im Durchschnitt 25 Jahre*), oder die Mittelwerte zweier Messreihen werden miteinander verglichen (Beispiel-*$H_{0}:$ Studentinnen und Studenten an der FOM sind im Durchschnitt gleich alt*). Im Falle zweier Stichproben wird zwischen abhängigen und unabhängigen Stichproben unterschieden.  
 
 Zwei Stichproben sind unabhängig, wenn an verschiedenen Subjekten das gleiche Merkmal erhoben wird. Beispiel: Alter (gleiches Merkmal) bei Studentinnen und Studenten (verschiedene Subjekte).  
@@ -122,17 +126,26 @@ Zwei Stichproben sind abhängig, wenn verschiedene Merkmale an den gleichen Subj
 
 Ein t-Test kann mit einseitiger und zweiseitiger Nullhypothese durchgeführt werden. Bei einer zweiseitigen Nullhypothese wird auf Gleichheit getestet (Beispiel-*$H_{0}: \mu=0$*), die Nullhypothese wird bei starker Abweichung nach oben und unten verworfen. Bei einer einseitigen Nullhypothese wird auf kleinergleich oder größergleich getestet (Beispiel-*$H_{0}: \mu \le 0$* oder *$H_{0}: \mu \ge 0$*), die Nullhypothese wird bei starker Abweichung nach oben oder unten verworfen.
 
+
 ## Einstichproben-t-Test
+
 __Beispiel (Trinkgeld-Datensatz)__  
 Es ist zu prüfen *$H_{0}:$ Es wird kein Trinkgeld gegeben ($H_{0}: \mu(tip) = 0$)*. Zunächst sollte mit einer grafischen Darstellung und deskriptiven Statistiken begonnen werden.
+
+\pagebreak
+
+\Begin{multicols}{2}
 
 ```{r lattice-boxplot}
 bwplot(~tip, data=tips)
 ```
 
+
 ```{r ggformula-boxplot}
-gf_boxplot( tip ~ 1, data=tips)
+gf_boxplot( tip ~ 1, data=tips) + coord_flip()
 ```
+
+\End{multicols}
 
 ```{r}
 favstats(~tip, data=tips)
@@ -164,19 +177,29 @@ __Übung__
 1. Testen Sie die Nullhypothese *$H_{0}:$ Es wird höchstens zwei Dollar Trinkgeld gegeben ($H_{0}: \mu(tip) \le 2$)*.  
 2. Bestimmen Sie ein 90%-Konfidenzintervall für das durchschnittliche Trinkgeld.  
 
+
 ## Zweistichproben-t-Test
 
 __Beispiel (Trinkgeld-Datensatz)__  
 Es ist zu prüfen *$H_{0}:$ Männer und Frauen geben gleich viel Trinkgeld ($H_{0}: \mu(tip_{Männer})-\mu(tip_{Frauen})= 0$)*. Es empfiehlt sich, zunächst mit einer grafischen Darstellung sowie deskriptiven Statistiken zu starten. Als grafische Darstellungen bieten sich Boxplots und Mittelwertplots an.
 
+\pagebreak
+
+\Begin{multicols}{2}
 ```{r lattice-boxplot-plotmeans}
 bwplot(tip~sex, data=tips) # Boxplot
-plotmeans(tip~sex, data=tips) # Mittelwertplot mit 95% Konfidenzintervall
 ```
-```{r ggfomular-boxplot-plotmeans}
+
+```{r ggfomular-boxplot}
 gf_boxplot(tip~sex, data=tips) # Boxplot
+```
+
+\End{multicols}
+
+```{r plotmeans}
 plotmeans(tip~sex, data=tips) # Mittelwertplot mit 95% Konfidenzintervall
 ```
+
 ```{r favstats-tip-sex}
 favstats(tip~sex, data=tips) # deskriptive Statistiken
 ```
@@ -192,6 +215,7 @@ Testen Sie die Nullhypothese *$H_{0}:$ Das durchschnittliche Trinkgeld ist genau
 
 
 # Varianzanalyse
+
 Sollen mehr als zwei Mittelwerte miteinander verglichen werden, dann muss anstelle eines t-Tests eine Varianzanalyse durchgeführt werden.
 
 Mit einer Varianzanalyse ist es möglich, sowohl mehr als zwei Mittelwerte miteinander zu vergleichen (einfaktorielle Varianzanalyse) als auch mehr als eine Gruppierungsvariable (mehrfaktorielle Varianzanalyse) zu prüfen. Allgemeiner formuliert prüft die Varianzanalyse, ob ein metrisch skaliertes Merkmal (Zielgröße) von einer oder mehreren kategoriellen Gruppierungsvariablen (Einflussgrößen bzw. Faktoren) abhängt. Dabei lassen sich zum einen für jeden Faktor getrennt die Einflüsse untersuchen (Haupteffekte) als auch die Einflüsse kombinierter Effekte (Wechselwirkungen).  
@@ -202,12 +226,18 @@ Mit einer Varianzanalyse ist es möglich, sowohl mehr als zwei Mittelwerte mitei
 __Beispiel (Trinkgeld-Datensatz)__  
 Es ist zu prüfen *$H_{0}:$ Die durchschnittlichen Restaurantrechnungen sind an den vier verschiedenen Tagen (Donnerstag bis Sonntag) gleich hoch.* Zunächst werden Grafiken und deskriptive Statistiken erstellt.
 
+\Begin{multicols}{2}
+
 ```{r lattice-einfak-var}
 bwplot(total_bill~day, data=tips) # Boxplot
 ```
+
+
 ```{r ggformular-einfak-var}
 gf_boxplot(total_bill~day, data=tips) # Boxplot
 ```
+\End{multicols}
+
 ```{r}
 plotmeans(total_bill~day, data=tips) # Mittelwertplot
 favstats(total_bill~day, data=tips) # deskriptive Statistiken
@@ -227,6 +257,7 @@ summary(glht(anovamodel, linfct = mcp(day = "Tukey")))
 
 
 ## Mehrfaktorielle Varianzanalyse
+
 Bei mehrfaktoriellen Varianzanalysen können sowohl die Haupteffekte als auch die Wechselwirkungen zwischen den Haupteffekten untersucht werden.  
 
 ```{r include = FALSE}
@@ -266,6 +297,7 @@ Führen Sie eine zweifaktorielle Varianzanalyse für die Zielgröße  `{tips` mi
 
 
 # Korrelationsanalyse
+
 Die Korrelationsanalyse wird verwendet, um den Zusammenhang von mindestens zwei metrischen oder ordinalen Merkmalen zu beschreiben. Für ordinale Merkmale wird die Spearman-Rangkorrelation verwendet. Da diese auf den Rängen der Ausprägungen basiert, ist sie robust gegen Ausreißer. Für metrische Merkmale wird die Pearson-Korrelation bestimmt, diese ist anfällig gegen Ausreißer. Hier empfiehlt sich zusätzlich die grafische Darstellung mit einem Streudiagramm.  
 
 Hinweis: Eine (positive oder negative) Korrelation zwischen zwei Merkmalen bedeutet nicht, dass es auch einen Kausalzusammenhang gibt. Das bekannteste Beispiel hierfür ist die sog. Theorie der Störche. So lässt sich zeigen, dass es eine positive Korrelation zwischen Geburtenraten und Storchpopulationen gibt. Ein Kausalzusammenhang darf bezweifelt werden...  
@@ -273,13 +305,16 @@ Hinweis: Eine (positive oder negative) Korrelation zwischen zwei Merkmalen bedeu
 __Beispiel (Trinkgeld-Datensatz)__  
 Es ist der Zusammenhang zwischen der Höhe der Restaurantrechnung und der Trinkgeldhöhe zu untersuchen. 
 
+\Begin{multicols}{2}
 ```{r lattice-xyplot-tip-total_bil}
 xyplot(tip~total_bill, data=tips)
 ```
 
+
 ```{r ggformula-gf_point-tip-total_bil}
 gf_point(tip~total_bill, data=tips)
 ```
+\End{multicols}
 
 Die aufwärts gerichtete Punktwolke deutet auf eine positive Korrelation hin. Die Stärke der Korrelation ergibt sich wie folgt:
 ```{r}
@@ -288,15 +323,17 @@ cor(tip ~ total_bill, data=tips, method="spearman") # Spearman-Korrelation
 ```
 
 
-
 # Regressionsanalyse
+
 Wie die Korrelationsanalyse kann auch die Regression verwendet werden, um den (linearen) Zusammenhang mindestens zweier Merkmale zu untersuchen. Im Gegensatz zur Korrelation gibt es hier eine (theoretische) Fundierung, aufgrund der angenommen wird, dass eine oder mehrere unabhängige Variablen $X_{1},\ldots,X_{k}$ (davon mindestens eine metrisch) einen Einfluss auf eine metrische abhängige Variable $Y$ haben, d.h. $Y = f(X_{1},\ldots,X_{k})$.   
 
 Im Falle einer linearen Regression ist $f()$ eine lineare Funktion. Es gilt:
 
 $$Y_{i}=\beta_0+\beta_1\cdot X_1 + \epsilon_i$$ für eine einfache lineare Regression, und $$Y_{i}=\beta_0+\beta_1\cdot X_1 + \ldots + \beta_k\cdot X_k + \epsilon_i$$ für eine multiple lineare Regression.  
 
+
 ## Durchführung einer einfachen linearen Regression
+
 Bei einer einfachen linearen Regression wird der Einfluss von genau einer unabhängigen Variablen auf die Zielgröße untersucht.   
 
 __Beispiel (Trinkgeld-Datensatz)__
@@ -306,13 +343,16 @@ Die zugehörige Regressionsgleichung lautet:
 $$tip_i=\beta_0+\beta_1\cdot total\_bill_i+\epsilon_i$$
 Die Höhe der Restaurantrechnung hat genau dann einen Einfluss auf die Trinkgeldhöhe, wenn der Steigungsparameter $\beta_1$ signifikant vopn 0 verschieden ist. Analog zur Korrelationsanalyse empfiehlt sich zunächst eine grafische Darstellung:
 
+\Begin{multicols}{2}
 ```{r lattice-xyplot-tip-total_bill-2}
 xyplot(tip~total_bill, data=tips)
 ```
 
+
 ```{r ggformula-gf_point-tip-total_bill-2}
 gf_point(tip~total_bill, data=tips)
 ```
+\End{multicols}
 
 Es folgt die einfache lineare Regression:
 
@@ -337,19 +377,26 @@ linregFun(total_bill=30)
 
 also `r round(linregFun(total_bill=30),2)`$.
 
+\pagebreak
+
+\Begin{multicols}{2}
 In mosaic kann die Modellgerade über 
 ```{r}
 # Streudiagramm mit Regressionsgerade
 plotModel(linreg)
 ```
 
+
+oder
 ```{r ggformula-Streudiagramm-mit-Regressionsgerade}
 # Streudiagramm mit Regressionsgerade
-gf_point(tip~total_bill, data=tips) %>% gf_lm(tip~total_bill, data=tips) 
+gf_point(tip~total_bill, data=tips) %>% 
+    gf_lm(tip~total_bill, data=tips) 
 ```
-
+\End{multicols}
 
 betrachtet werden. Das Bestimmtheitsmaß $R^{2}$ ist mit `r round(summary(linreg)$r.squared,2)` ok: `r round(summary(linreg)$r.squared*100)`% der Variation des Trinkgeldes wird im Modell erklärt.
+
 
 ## Einfache Regressionsdiagnostik
 
@@ -373,15 +420,20 @@ resettest(linreg, 2:4, type="fitted")
 __Normalverteilung der Residuen__  
 Zur Überprüfung der Normalverteilung der Residuen zeichnen wir ein Histogramm. Die Residuen können über den Befehl `resid()` aus einem linearen Modell extrahiert werden. Außerdem wird noch ein Shapiro-Qilk-Test durchgeführt und ein QQ-Diagramm erzeugt. Hier scheint die Annahme erfüllt zu sein:
 
+\goodbreak
+
+\Begin{multicols}{2}
 ```{r lattice-Histogramm-Residuen}
 # Histogramm
 histogram( ~ resid(linreg))
 ```
 
+
 ```{r ggformula-Histogramm-Residuen}
 # Histogramm
 gf_histogram( ~ resid(linreg))
 ```
+\End{multicols}
 
 ```{r}
 # Normal-Probability-Plot
@@ -392,47 +444,44 @@ shapiro.test(resid(linreg))
 
 ```
 
-```{r ggformula}
-# Histogramm
-gf_histogram( ~ resid(linreg))
-
-# Normal-Probability-Plot
-qqPlot(resid(linreg), dist="norm", line="quartiles", envelope=FALSE)
-
-# Shapiro-Wilk-Test
-shapiro.test(resid(linreg))
-
-```
 
 __Homoskedastizität__  
 Dies kann z. B. mit einem Scatterplot der Residuen auf der y-Achse und den angepassten Werten auf der x-Achse überprüft werden. Die angepassten Werte werden über den Befehl `fitted()` extrahiert. Ergänzend wird ein Breusch-Pagan-Test durchgeführt. Diese Annahme scheint verletzt zu sein (siehe unten): je größer die Prognose des Trinkgeldes, desto größer wirkt die Streuung der Residuen. Dieses Phänomen ließ sich schon aus dem ursprünglichen Scatterplot `xyplot(tip ~ total_bill, data=tips)` erahnen. Das ist auch inhaltlich plausibel: je höher die Rechnung, desto höher die Varianz beim Trinkgeld. Die Verletzung dieser Annahme beeinflusst *nicht* die Schätzung der Steigung, sondern die Schätzung des Standardfehlers, also des p-Wertes des Hypothesentests, d. h. $H_0:\beta_1=0$. 
 
+\Begin{multicols}{2}
 ```{r}
 # Streudiagramm Residuen gegen fitted values
 xyplot(resid(linreg) ~ fitted(linreg))
 ```
 
+
 ```{r}
 # Streudiagramm Residuen gegen fitted values
 gf_point(resid(linreg) ~ fitted(linreg))
 ```
+\End{multicols}
 
 # Breusch-Pagan-Test auf Heteroskedastizität
+
 ```{r}
 bptest(linreg)
 ```
 
 __Autokorrelation__  
 Hier kann der Residuenplot herangezogen werden, ergänzend wird noch ein Durbin-Watson-Test durchgeführt.
+
+\Begin{multicols}{2}
 ```{r lattice-Residuenplot}
 # Residuenplot
 xyplot(resid(linreg)~1:nrow(tips))
 ```
 
-```{r}
+
+```{r gfformular-Residuenplot}
 # Residuenplot
 gf_point(resid(linreg)~1:nrow(tips))
 ```
+\End{multicols}
 
 ```{r ggformula-Residuenplot}
 # Durbin-Watson-Test auf Autokorrelation
@@ -442,7 +491,9 @@ dwtest(linreg, alternative="two.sided")
 __Robustheit__  
 Wie am Plot der linearen Regression `plotModel(linreg)` erkennbar gibt es vereinzelt Ausreißer nach oben, allerdings ohne einen extremen Hebel.
 
+
 ## Multiple Regression
+
 Bei mehr als einer unabhängigen Variablen liegt eine multiple Regression vor. Eine grafische Darstellung im Streudiagramm ist nun nicht mehr möglich.
 
 __Beispiel (Trinkgeld-Datensatz)__  
@@ -462,6 +513,9 @@ Die Regressionsdiagnostik kann weitgehend wie bei der einfachen linearen Regress
 
 - Zur grafischen Prüfung auf Linearität kann nicht mehr das Streudiagramm zwischen der abhängigen und unabhängigen Variablen verwendet werden. Statt dessen wird der Residuenplot verwendet, mit dem sich auch die Autokorrelation untersuchen lässt.
 
+\pagebreak
+
+\Begin{multicols}{2}
 ```{r}
 # Residuenplot
 xyplot(resid(linreg)~1:nrow(tips))
@@ -471,6 +525,7 @@ xyplot(resid(linreg)~1:nrow(tips))
 # Residuenplot
 gf_point(resid(linreg)~1:nrow(tips))
 ```
+\End{multicols}
 
 - Als zusätzliche Modellannahme ist nun auch die Multikollinearität zu prüfen. Hier können die Variance Inflation Factors herangezogen werden.
 
@@ -484,8 +539,7 @@ __Übung__
 Prüfen Sie für diese multiple lineare Regression die übrigen Modellannahmen.
 
 
-
-\newpage
+\pagebreak
 
 # Literaturhinweise
 

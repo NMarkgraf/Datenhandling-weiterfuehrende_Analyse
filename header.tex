@@ -5,6 +5,12 @@
 \usepackage{amsmath}
 \usepackage{setspace}
 \usepackage{courier}
+\usepackage{multicol}
+\newcommand{\hideFromPandoc}[1]{#1}
+\hideFromPandoc{
+        \let\Begin\begin
+        \let\End\end
+}
 %
 \pagestyle{fancy}
 %

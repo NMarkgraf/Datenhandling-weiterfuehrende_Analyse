@@ -1,6 +1,7 @@
 pdf_document:
     fig_height: 3
     fig_width: 5
+    md_extensions: +raw_tex
     keep_tex: no
     includes:
         in_header: header.tex
