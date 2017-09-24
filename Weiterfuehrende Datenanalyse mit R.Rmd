@@ -99,13 +99,14 @@ Der $\chi^{2}$-Test (sprich: Chi-Quadrat-Test) wird verwendet, um auf Unabhängi
 __Beispiel (Trinkgeld-Datensatz)__  
 Es ist zu prüfen: *$H_{0}:$ Das Rauchverhalten ist vom Geschlecht unabhängig.*
 
-```{r}
+```{r chi-quadrat-test-mosaic}
 xchisq.test(tally(sex~smoker, data=tips))
 ```
 
 Zusammenhangsmaße wie den Kontingenzkoeffizienten oder Cramérs V erhält man mit nachfolgendem Befehl (das Paket `vcd` muss aktiviert sein):
 
-```{r}
+```{r assocstats}
+# library(vcd) !
 assocstats(tally(sex~smoker, data=tips))
 ```
 
@@ -125,8 +126,15 @@ Ein t-Test kann mit einseitiger und zweiseitiger Nullhypothese durchgeführt wer
 __Beispiel (Trinkgeld-Datensatz)__  
 Es ist zu prüfen *$H_{0}:$ Es wird kein Trinkgeld gegeben ($H_{0}: \mu(tip) = 0$)*. Zunächst sollte mit einer grafischen Darstellung und deskriptiven Statistiken begonnen werden.
 
-```{r}
+```{r lattice-boxplot}
 bwplot(~tip, data=tips)
+```
+
+```{r ggformula-boxplot}
+gf_boxplot( tip ~ 1, data=tips)
+```
+
+```{r}
 favstats(~tip, data=tips)
 ```
 
@@ -147,6 +155,7 @@ Die Funktion `t.test` führt immer einen zweiseitigen Test durch. Soll ein einse
 __Beispiel (Trinkgeld-Datensatz)__  
 Es ist zu prüfen *$H_{0}:$ Es wird mindestens 0 Dollar Trinkgeld gegeben ($H_{0}: \mu(tip) \ge 0$)*
 Laut der Beschreibung der Funktionshilfe erwartet R die Sepzifikation der Alternativhypothese. Der zugehörige Übergabeparameter lautet `alternative="less"` und damit lautet der R-Befehl:
+
 ```{r}
 t.test(~tip, data=tips, alternative="less")
 ```
@@ -155,13 +164,20 @@ __Übung__
 1. Testen Sie die Nullhypothese *$H_{0}:$ Es wird höchstens zwei Dollar Trinkgeld gegeben ($H_{0}: \mu(tip) \le 2$)*.  
 2. Bestimmen Sie ein 90%-Konfidenzintervall für das durchschnittliche Trinkgeld.  
 
-## Zweistichproben-t-Test  
+## Zweistichproben-t-Test
+
 __Beispiel (Trinkgeld-Datensatz)__  
 Es ist zu prüfen *$H_{0}:$ Männer und Frauen geben gleich viel Trinkgeld ($H_{0}: \mu(tip_{Männer})-\mu(tip_{Frauen})= 0$)*. Es empfiehlt sich, zunächst mit einer grafischen Darstellung sowie deskriptiven Statistiken zu starten. Als grafische Darstellungen bieten sich Boxplots und Mittelwertplots an.
 
-```{r}
+```{r lattice-boxplot-plotmeans}
 bwplot(tip~sex, data=tips) # Boxplot
 plotmeans(tip~sex, data=tips) # Mittelwertplot mit 95% Konfidenzintervall
+```
+```{r ggfomular-boxplot-plotmeans}
+gf_boxplot(tip~sex, data=tips) # Boxplot
+plotmeans(tip~sex, data=tips) # Mittelwertplot mit 95% Konfidenzintervall
+```
+```{r favstats-tip-sex}
 favstats(tip~sex, data=tips) # deskriptive Statistiken
 ```
 
@@ -174,21 +190,31 @@ t.test(tip~sex, data=tips)
 __Übung__  
 Testen Sie die Nullhypothese *$H_{0}:$ Das durchschnittliche Trinkgeld ist genauso hoch wie die durchschnittliche Restaurantrechnung ($H_{0}: \mu(tip) = \mu(totalbill)$)*.  
 
+
 # Varianzanalyse
 Sollen mehr als zwei Mittelwerte miteinander verglichen werden, dann muss anstelle eines t-Tests eine Varianzanalyse durchgeführt werden.
 
 Mit einer Varianzanalyse ist es möglich, sowohl mehr als zwei Mittelwerte miteinander zu vergleichen (einfaktorielle Varianzanalyse) als auch mehr als eine Gruppierungsvariable (mehrfaktorielle Varianzanalyse) zu prüfen. Allgemeiner formuliert prüft die Varianzanalyse, ob ein metrisch skaliertes Merkmal (Zielgröße) von einer oder mehreren kategoriellen Gruppierungsvariablen (Einflussgrößen bzw. Faktoren) abhängt. Dabei lassen sich zum einen für jeden Faktor getrennt die Einflüsse untersuchen (Haupteffekte) als auch die Einflüsse kombinierter Effekte (Wechselwirkungen).  
 
+
 ## Einfaktorielle Varianzanalyse
+
 __Beispiel (Trinkgeld-Datensatz)__  
 Es ist zu prüfen *$H_{0}:$ Die durchschnittlichen Restaurantrechnungen sind an den vier verschiedenen Tagen (Donnerstag bis Sonntag) gleich hoch.* Zunächst werden Grafiken und deskriptive Statistiken erstellt.
-```{r}
+
+```{r lattice-einfak-var}
 bwplot(total_bill~day, data=tips) # Boxplot
+```
+```{r ggformular-einfak-var}
+gf_boxplot(total_bill~day, data=tips) # Boxplot
+```
+```{r}
 plotmeans(total_bill~day, data=tips) # Mittelwertplot
 favstats(total_bill~day, data=tips) # deskriptive Statistiken
 ```
 
 Dann folgt die Varianzanalyse:
+
 ```{r}
 anovamodel <- aov(total_bill~day, data=tips)
 summary(anovamodel)
@@ -198,6 +224,7 @@ Auf Basis des Mittelwertplots kann nun gefolgert werden, zwischen welchen Mittel
 ```{r}
 summary(glht(anovamodel, linfct = mcp(day = "Tukey")))
 ```
+
 
 ## Mehrfaktorielle Varianzanalyse
 Bei mehrfaktoriellen Varianzanalysen können sowohl die Haupteffekte als auch die Wechselwirkungen zwischen den Haupteffekten untersucht werden.  
@@ -245,13 +272,17 @@ Hinweis: Eine (positive oder negative) Korrelation zwischen zwei Merkmalen bedeu
 
 __Beispiel (Trinkgeld-Datensatz)__  
 Es ist der Zusammenhang zwischen der Höhe der Restaurantrechnung und der Trinkgeldhöhe zu untersuchen. 
-```{r}
+
+```{r lattice-xyplot-tip-total_bil}
 xyplot(tip~total_bill, data=tips)
+```
+
+```{r ggformula-gf_point-tip-total_bil}
+gf_point(tip~total_bill, data=tips)
 ```
 
 Die aufwärts gerichtete Punktwolke deutet auf eine positive Korrelation hin. Die Stärke der Korrelation ergibt sich wie folgt:
 ```{r}
-cor <- aggregatingFunction2(stats::cor)
 cor(tip ~ total_bill, data=tips) # Pearson-Korrelation
 cor(tip ~ total_bill, data=tips, method="spearman") # Spearman-Korrelation
 ```
@@ -275,8 +306,12 @@ Die zugehörige Regressionsgleichung lautet:
 $$tip_i=\beta_0+\beta_1\cdot total\_bill_i+\epsilon_i$$
 Die Höhe der Restaurantrechnung hat genau dann einen Einfluss auf die Trinkgeldhöhe, wenn der Steigungsparameter $\beta_1$ signifikant vopn 0 verschieden ist. Analog zur Korrelationsanalyse empfiehlt sich zunächst eine grafische Darstellung:
 
-```{r}
+```{r lattice-xyplot-tip-total_bill-2}
 xyplot(tip~total_bill, data=tips)
+```
+
+```{r ggformula-gf_point-tip-total_bill-2}
+gf_point(tip~total_bill, data=tips)
 ```
 
 Es folgt die einfache lineare Regression:
@@ -308,19 +343,24 @@ In mosaic kann die Modellgerade über
 plotModel(linreg)
 ```
 
+```{r ggformula-Streudiagramm-mit-Regressionsgerade}
+# Streudiagramm mit Regressionsgerade
+gf_point(tip~total_bill, data=tips) %>% gf_lm(tip~total_bill, data=tips) 
+```
+
+
 betrachtet werden. Das Bestimmtheitsmaß $R^{2}$ ist mit `r round(summary(linreg)$r.squared,2)` ok: `r round(summary(linreg)$r.squared*100)`% der Variation des Trinkgeldes wird im Modell erklärt.
 
 ## Einfache Regressionsdiagnostik
 
 Wie sieht es mit den Annahmen aus? Folgende Annahmen werden üblicherweise geprüft:
-\begin{itemize}
-\item Linearität der Beziehung zwischen den unabhängigen und der abhängigen Variablen.
-\item  Normalverteilung der Residuen.
-\item Homoskedastizität (konstante Varianz) der Residuen.
-\item Keine Autokorrelation der Residuen.
-\item Keine Multikollinearität der unabhängigen Variablen.
-\item Robustheit (Keine Ausreißer).
-\end{itemize}
+
+* Linearität der Beziehung zwischen den unabhängigen und der abhängigen Variablen.
+* Normalverteilung der Residuen.
+* Homoskedastizität (konstante Varianz) der Residuen.
+* Keine Autokorrelation der Residuen.
+* Keine Multikollinearität der unabhängigen Variablen.
+* Robustheit (Keine Ausreißer).
 
 __Linearität__  
 Die Linearität des Zusammenhangs wurde bereits weiter oben mit Hilfe des Scatterplots "überprüft". Ergänzend kann noch ein RESET-Test durchgeführt werden.
@@ -333,9 +373,28 @@ resettest(linreg, 2:4, type="fitted")
 __Normalverteilung der Residuen__  
 Zur Überprüfung der Normalverteilung der Residuen zeichnen wir ein Histogramm. Die Residuen können über den Befehl `resid()` aus einem linearen Modell extrahiert werden. Außerdem wird noch ein Shapiro-Qilk-Test durchgeführt und ein QQ-Diagramm erzeugt. Hier scheint die Annahme erfüllt zu sein:
 
-```{r}
+```{r lattice-Histogramm-Residuen}
 # Histogramm
 histogram( ~ resid(linreg))
+```
+
+```{r ggformula-Histogramm-Residuen}
+# Histogramm
+gf_histogram( ~ resid(linreg))
+```
+
+```{r}
+# Normal-Probability-Plot
+qqPlot(resid(linreg), dist="norm", line="quartiles", envelope=FALSE)
+
+# Shapiro-Wilk-Test
+shapiro.test(resid(linreg))
+
+```
+
+```{r ggformula}
+# Histogramm
+gf_histogram( ~ resid(linreg))
 
 # Normal-Probability-Plot
 qqPlot(resid(linreg), dist="norm", line="quartiles", envelope=FALSE)
@@ -351,17 +410,31 @@ Dies kann z. B. mit einem Scatterplot der Residuen auf der y-Achse und den angep
 ```{r}
 # Streudiagramm Residuen gegen fitted values
 xyplot(resid(linreg) ~ fitted(linreg))
+```
+
+```{r}
+# Streudiagramm Residuen gegen fitted values
+gf_point(resid(linreg) ~ fitted(linreg))
+```
 
 # Breusch-Pagan-Test auf Heteroskedastizität
+```{r}
 bptest(linreg)
 ```
 
 __Autokorrelation__  
 Hier kann der Residuenplot herangezogen werden, ergänzend wird noch ein Durbin-Watson-Test durchgeführt.
-```{r}
+```{r lattice-Residuenplot}
 # Residuenplot
 xyplot(resid(linreg)~1:nrow(tips))
+```
 
+```{r}
+# Residuenplot
+gf_point(resid(linreg)~1:nrow(tips))
+```
+
+```{r ggformula-Residuenplot}
 # Durbin-Watson-Test auf Autokorrelation
 dwtest(linreg, alternative="two.sided")
 ```
@@ -388,9 +461,15 @@ summary(linreg)
 Die Regressionsdiagnostik kann weitgehend wie bei der einfachen linearen Regression durchgeführt werden, mit zwei Unterschieden:
 
 - Zur grafischen Prüfung auf Linearität kann nicht mehr das Streudiagramm zwischen der abhängigen und unabhängigen Variablen verwendet werden. Statt dessen wird der Residuenplot verwendet, mit dem sich auch die Autokorrelation untersuchen lässt.
+
 ```{r}
 # Residuenplot
 xyplot(resid(linreg)~1:nrow(tips))
+```
+
+```{r}
+# Residuenplot
+gf_point(resid(linreg)~1:nrow(tips))
 ```
 
 - Als zusätzliche Modellannahme ist nun auch die Multikollinearität zu prüfen. Hier können die Variance Inflation Factors herangezogen werden.
