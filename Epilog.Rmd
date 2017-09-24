@@ -1,6 +1,6 @@
 # Versionshinweise:
 
-* Autor des Orginal-Skripts: Prof. Dr. Schwarz
+* Autor des Orginal-Skripts: Prof. Dr. Joachim Schwarz
     - Danke für die Überlassung des Skripts!
 * Datum erstellt: `r Sys.Date()`
 * R Version: `r getRversion()`

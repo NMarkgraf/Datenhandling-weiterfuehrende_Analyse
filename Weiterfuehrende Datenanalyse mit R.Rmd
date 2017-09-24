@@ -470,6 +470,8 @@ bptest(linreg)
 __Autokorrelation__  
 Hier kann der Residuenplot herangezogen werden, ergänzend wird noch ein Durbin-Watson-Test durchgeführt.
 
+\pagebreak
+
 \Begin{multicols}{2}
 ```{r lattice-Residuenplot}
 # Residuenplot
