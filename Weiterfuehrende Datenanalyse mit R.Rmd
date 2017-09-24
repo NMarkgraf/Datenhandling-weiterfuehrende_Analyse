@@ -1,0 +1,408 @@
+---
+title: "Weiterführende Datenanalyse mit R"
+subtitle: "Unterlage zum Workshop auf den Dozententagen am 30.01.2017"
+author: "Prof. Dr. Joachim Schwarz"
+date: ''
+output:
+  pdf_document:
+    fig_height: 3
+    fig_width: 5
+    includes:
+          in_header: header.tex
+documentclass: article
+classoption: a4paper, 10pt
+
+
+
+---
+
+\setstretch{1.44}
+\begin{center}
+\includegraphics{ifes.jpg}
+\end{center}
+
+\tableofcontents
+\newpage  
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+\vspace{2cm}
+# Vorbereitungen
+Vor der eigentlichen Analysen müssen einige Pakete aktiviert sowie der Datensatz eingelesen werden.
+\newline
+\newline
+__RStudio und RCommander__  
+Falls Sie RStudio benutzen, dann öffnen Sie zur Eingabe der Skriptbefehle bitte ein neues R-Skriptfenster (File-->New File-->R Script). Falls Sie den RCommander benutzen, können Sie sämtliche Skriptbefehle in das Skriptfenster (oberes Fenster) eingeben.
+
+__Pakete aktivieren__  
+Erforderlich sind die Pakete \texttt{mosaic, vcd, gplot, effects, multcomp, lmtest, car}. Sämtliche Pakete werden mit \texttt{library(paketname)} bzw. \texttt{require(paketname)} eingebunden, Beispiel: \texttt{library(mosaic)}.  
+Falls dabei die Fehlermeldung "package does not exist" erscheint, muss das Paket zunächst mit \texttt{install.packages(\dq paketname\dq, dependencies=TRUE)} installiert werden, Beispiel: \texttt{install.packages(\dq gplot\dq, dependencies=TRUE)}. Für die Installation ist eine Internetverbindung erforderlich. Nach der Installation muss der library-Befehl zur Aktivierung ausgeführt werden.
+
+```{r eval=FALSE}
+library(mosaic) # Einheitliche Syntax
+library(vcd) # Zusammenhangsmaße für nominal skalierte Merkmale
+library(gplots) # Plot für arithmetische Mittelwerte
+library(effects) # Effektplots für ANOVA-Modelle
+library(multcomp) # Paarweise Vergleiche in der ANOVA
+library(lmtest) # Regressionsdiagnostik
+library(car) # Quantile-Quantile-Plot
+```
+```{r include = FALSE}
+library(mosaic)
+library(vcd)
+library(gplots) 
+library(effects)
+library(multcomp)
+library(lmtest)
+library(car)
+```
+
+__Daten einlesen__  
+Datensätze können auf verschiedene Arten eingelesen werden. Der Trinkgelddatensatz ist bereits in R enthalten, im Paket reshape2. Falls die Fehlermeldung erscheint, dass das Paket \texttt{reshape2} nicht existiert, so muss dies vorab installiert werden, vgl. hierzu die obigen Ausführungen. 
+```{r}
+data(tips, package="reshape2")
+```
+
+__Datenstruktur prüfen__  
+Es empfiehlt sich, vor jeder Analyse den Datensatz zu betrachten. Von Relevanz sind hier die Datenstrukturen, d.h. Variablennamen und Variablentypen, die Größe des Datensatzes sowie die ersten und letzten paar Zeilen.
+```{r}
+# Datenstruktur
+str(tips)
+# Größe des Datensatzes
+dim(tips)
+# Die ersten 6 Zeilen
+head(tips)
+# die letzten 6 Zeilen
+tail(tips)
+```
+
+# $\protect\chi^{2}$-Test
+Der $\chi^{2}$-Test (sprich: Chi-Quadrat-Test) wird verwendet, um auf Unabhängigkeit zweier Mermale bzw. auf Homogenität der (Häufigkeits-)Verteilungen zweier kategorieller, i.d.R. nominal skalierter Merkmale zu prüfen. Die zugehörige Nullhypothese lautet \emph{$H_{0}:$ Die beiden Merkmale sind unabhängig.}  
+
+__Beispiel (Trinkgeld-Datensatz)__  
+Es ist zu prüfen: \emph{$H_{0}:$ Das Rauchverhalten ist vom Geschlecht unabhängig.}  
+
+```{r}
+xchisq.test(tally(sex~smoker, data=tips))
+```
+
+Zusammenhangsmaße wie den Kontingenzkoeffizienten oder Cramérs V erhält man mit nachfolgendem Befehl (das Paket \texttt{vcd} muss aktiviert sein):
+
+```{r}
+assocstats(tally(sex~smoker, data=tips))
+```
+
+__Übung__  
+Testen Sie die Nullhypothese \emph{$H_{0}:$ Der Essenstag ist vom Geschlecht des Rechnungsbezahlers unabhängig} und bestimmen Sie die Stärke des Zusammenhangs mit dem Kontingenzkoeffizienten.  
+
+# t-Test
+Der t-Test wird verwendet, um Mittelwerte metrisch skalierter Merkmale zu prüfen. Dabei kann entweder der Mittelwert einer Messreihe mit einem vorgegebenen Wert verglichen werden (Beispiel-\emph{$H_{0}:$ Das Alter aller FOM-Studierenden ist im Durchschnitt 25 Jahre}), oder die Mittelwerte zweier Messreihen werden miteinander verglichen (Beispiel-\emph{$H_{0}:$ Studentinnen und Studenten an der FOM sind im Durchschnitt gleich alt}). Im Falle zweier Stichproben wird zwischen abhängigen und unabhängigen Stichproben unterschieden.  
+
+Zwei Stichproben sind unabhängig, wenn an verschiedenen Subjekten das gleiche Merkmal erhoben wird. Beispiel: Alter (gleiches Merkmal) bei Studentinnen und Studenten (verschiedene Subjekte).  
+
+Zwei Stichproben sind abhängig, wenn verschiedene Merkmale an den gleichen Subjekten erhoben werden. Beispiel: Blutdruck vor und nach einer Behandlung (verschiedene Merkmale) an einer Gruppe von Patienten (gleiche Subjekte).  
+
+Ein t-Test kann mit einseitiger und zweiseitiger Nullhypothese durchgeführt werden. Bei einer zweiseitigen Nullhypothese wird auf Gleichheit getestet (Beispiel-\emph{$H_{0}: \mu=0$}), die Nullhypothese wird bei starker Abweichung nach oben und unten verworfen. Bei einer einseitigen Nullhypothese wird auf kleinergleich oder größergleich getestet (Beispiel-\emph{$H_{0}: \mu \le 0$} oder \emph{$H_{0}: \mu \ge 0$}), die Nullhypothese wird bei starker Abweichung nach oben oder unten verworfen.
+
+## Einstichproben-t-Test
+__Beispiel (Trinkgeld-Datensatz)__  
+Es ist zu prüfen \emph{$H_{0}:$ Es wird kein Trinkgeld gegeben ($H_{0}: \mu(tip) = 0$)}. Zunächst sollte mit einer grafischen Darstellung und deskriptiven Statistiken begonnen werden.
+```{r}
+bwplot(~tip, data=tips)
+favstats(~tip, data=tips)
+```
+
+Nun kommt der t-Test.
+
+```{r}
+t.test(~tip, data=tips)
+```
+
+Im Output finden sich zunächst der t-Wert (durchschnittliches Trinkgeld dividiert durch den Standardfehler), die Freiheitsgrade (Stichprobenumfang weniger 1) und der p-Wert (Wahrscheinlichkeit für t unter der Nullhypothese). Weiter finden sich ein 95%-Konfidenzintervall für die Trinkgeldhöhe sowie das durchschnittliche Trinkgeld.  
+
+Die Funktion \texttt{t.test} führt immer einen zweiseitigen Test durch. Soll ein einseitiger Test durchgeführt werden, so muss dies durch einen zusätzlichen Übergabeparameter kenntlich gemacht werden. Um von diesem die genaue Syntax zu erfahren kann die R-Hilfe zur Funktion aufgerufen werden.
+```{r eval=FALSE}
+?t.test
+```
+
+__Beispiel (Trinkgeld-Datensatz)__  
+Es ist zu prüfen \emph{$H_{0}:$ Es wird mindestens 0 Dollar Trinkgeld gegeben ($H_{0}: \mu(tip) \ge 0$)}
+Laut der Beschreibung der Funktionshilfe erwartet R die Sepzifikation der Alternativhypothese. Der zugehörige Übergabeparameter lautet \texttt{alternative=\dq less\dq} und damit lautet der R-Befehl:
+```{r}
+t.test(~tip, data=tips, alternative="less")
+```
+
+__Übung__  
+1. Testen Sie die Nullhypothese \emph{$H_{0}:$ Es wird höchstens zwei Dollar Trinkgeld gegeben ($H_{0}: \mu(tip) \le 2$)}.  
+2. Bestimmen Sie ein 90%-Konfidenzintervall für das durchschnittliche Trinkgeld.  
+
+## Zweistichproben-t-Test  
+__Beispiel (Trinkgeld-Datensatz)__  
+Es ist zu prüfen \emph{$H_{0}:$ Männer und Frauen geben gleich viel Trinkgeld ($H_{0}: \mu(tip_{Männer})-\mu(tip_{Frauen})= 0$)}. Es empfiehlt sich, zunächst mit einer grafischen Darstellung sowie deskriptiven Statistiken zu starten. Als grafische Darstellungen bieten sich Boxplots und Mittelwertplots an.
+```{r}
+bwplot(tip~sex, data=tips) # Boxplot
+plotmeans(tip~sex, data=tips) # Mittelwertplot mit 95% Konfidenzintervall
+favstats(tip~sex, data=tips) # deskriptive Statistiken
+```
+
+Nun kann der t-Test durchgeführt werden.
+
+```{r}
+t.test(tip~sex, data=tips)
+```
+
+__Übung__  
+Testen Sie die Nullhypothese \emph{$H_{0}:$ Das durchschnittliche Trinkgeld ist genauso hoch wie die durchschnittliche Restaurantrechnung ($H_{0}: \mu(tip) = \mu(totalbill)$)}.  
+
+# Varianzanalyse
+Sollen mehr als zwei Mittelwerte miteinander verglichen werden, dann muss anstelle eines t-Tests eine Varianzanalyse durchgeführt werden.
+
+Mit einer Varianzanalyse ist es möglich, sowohl mehr als zwei Mittelwerte miteinander zu vergleichen (einfaktorielle Varianzanalyse) als auch mehr als eine Gruppierungsvariable (mehrfaktorielle Varianzanalyse) zu prüfen. Allgemeiner formuliert prüft die Varianzanalyse, ob ein metrisch skaliertes Merkmal (Zielgröße) von einer oder mehreren kategoriellen Gruppierungsvariablen (Einflussgrößen bzw. Faktoren) abhängt. Dabei lassen sich zum einen für jeden Faktor getrennt die Einflüsse untersuchen (Haupteffekte) als auch die Einflüsse kombinierter Effekte (Wechselwirkungen).  
+
+## Einfaktorielle Varianzanalyse
+__Beispiel (Trinkgeld-Datensatz)__  
+Es ist zu prüfen \emph{$H_{0}:$ Die durchschnittlichen Restaurantrechnungen sind an den vier verschiedenen Tagen (Donnerstag bis Sonntag) gleich hoch.} Zunächst werden Grafiken und deskriptive Statistiken erstellt.
+```{r}
+bwplot(total_bill~day, data=tips) # Boxplot
+plotmeans(total_bill~day, data=tips) # Mittelwertplot
+favstats(total_bill~day, data=tips) # deskriptive Statistiken
+```
+
+Dann folgt die Varianzanalyse:
+```{r}
+anovamodel <- aov(total_bill~day, data=tips)
+summary(anovamodel)
+```
+
+Auf Basis des Mittelwertplots kann nun gefolgert werden, zwischen welchen Mittelwerten sich besonders große Unterschiede ergeben. Ergänzend dazu können paarweise Vergleiche mit nachfolgender Anweisung durchgeführt werden:
+```{r}
+summary(glht(anovamodel, linfct = mcp(day = "Tukey")))
+```
+
+## Mehrfaktorielle Varianzanalyse
+Bei mehrfaktoriellen Varianzanalysen können sowohl die Haupteffekte als auch die Wechselwirkungen zwischen den Haupteffekten untersucht werden.  
+
+```{r include = FALSE}
+# Der Befehl plotmeans(total_bill~sex*smoker, data=tips) funktioniert nicht, lediglich favstats(total_bill~sex+smoker, data=tips) und bwplot(total_bill~sex+smoker, data=tips) funktionieren.
+```
+
+__Beispiel (Trinkgeld-Datensatz)__  
+Folgende drei Hypothesen sind zu prüfen:  
+\emph{$H_{01}:$ Das Geschlecht des Rechnungsbezahlers hat keinen Einfluss auf die Rechnungshöhe.}  
+\emph{$H_{02}:$ Das Rauchverhalten des Rechnungsbezahlers hat keinen Einfluss auf die Rechnungshöhe.}  
+\emph{$H_{03}:$ Das gibt keine Wechselwirkung zwischen Geschlecht und Rauchverhalten des Rechnungsbezahlers.}  
+
+```{r}
+anovamodel <- aov(total_bill~sex*smoker, data=tips)
+summary(anovamodel)
+plot(allEffects(anovamodel))
+```
+
+Ein Modell nur für die Haupteffekte funktioniert wie folgt:
+
+```{r}
+anovamodel <- aov(total_bill~sex+smoker, data=tips)
+summary(anovamodel)
+plot(allEffects(anovamodel))
+```
+
+Es folgt das Modell nur für die Wechselwirkungen:
+```{r}
+anovamodel <- aov(total_bill~sex:smoker, data=tips)
+summary(anovamodel)
+plot(allEffects(anovamodel))
+```
+
+__Übung__  
+Führen Sie eine zweifaktorielle Varianzanalyse für die Zielgröße \texttt{tips} mit den Faktoren \texttt{time} und \texttt{smoker} durch.
+
+
+# Korrelationsanalyse
+Die Korrelationsanalyse wird verwendet, um den Zusammenhang von mindestens zwei metrischen oder ordinalen Merkmalen zu beschreiben. Für ordinale Merkmale wird die Spearman-Rangkorrelation verwendet. Da diese auf den Rängen der Ausprägungen basiert, ist sie robust gegen Ausreißer. Für metrische Merkmale wird die Pearson-Korrelation bestimmt, diese ist anfällig gegen Ausreißer. Hier empfiehlt sich zusätzlich die grafische Darstellung mit einem Streudiagramm.  
+
+Hinweis: Eine (positive oder negative) Korrelation zwischen zwei Merkmalen bedeutet nicht, dass es auch einen Kausalzusammenhang gibt. Das bekannteste Beispiel hierfür ist die sog. Theorie der Störche. So lässt sich zeigen, dass es eine positive Korrelation zwischen Geburtenraten und Storchpopulationen gibt. Ein Kausalzusammenhang darf bezweifelt werden...  
+
+__Beispiel (Trinkgeld-Datensatz)__  
+Es ist der Zusammenhang zwischen der Höhe der Restaurantrechnung und der Trinkgeldhöhe zu untersuchen. 
+```{r}
+xyplot(tip~total_bill, data=tips)
+```
+
+Die aufwärts gerichtete Punktwolke deutet auf eine positive Korrelation hin. Die Stärke der Korrelation ergibt sich wie folgt:
+```{r}
+cor <- aggregatingFunction2(stats::cor)
+cor(tip ~ total_bill, data=tips) # Pearson-Korrelation
+cor(tip ~ total_bill, data=tips, method="spearman") # Spearman-Korrelation
+```
+
+
+
+# Regressionsanalyse
+Wie die Korrelationsanalyse kann auch die Regression verwendet werden, um den (linearen) Zusammenhang mindestens zweier Merkmale zu untersuchen. Im Gegensatz zur Korrelation gibt es hier eine (theoretische) Fundierung, aufgrund der angenommen wird, dass eine oder mehrere unabhängige Variablen $X_{1},\ldots,X_{k}$ (davon mindestens eine metrisch) einen Einfluss auf eine metrische abhängige Variable $Y$ haben, d.h. $Y = f(X_{1},\ldots,X_{k})$.   
+
+Im Falle einer linearen Regression ist $f()$ eine lineare Funktion. Es gilt:
+$$Y_{i}=\beta_0+\beta_1\cdot X_1 + \epsilon_i$$ für eine einfache lineare Regression, und $$Y_{i}=\beta_0+\beta_1\cdot X_1 + \ldots + \beta_k\cdot X_k + \epsilon_i$$ für eine multiple lineare Regression.  
+
+## Durchführung einer einfachen linearen Regression
+Bei einer einfachen linearen Regression wird der Einfluss von genau einer unabhängigen Variablen auf die Zielgröße untersucht.   
+
+__Beispiel (Trinkgeld-Datensatz)__
+Es ist zu prüfen \emph{$H_{0}:$ Die Höhe der Restaurantrechnung hat keinen Einfluss auf die Höhe des Trinkgelds ($H_0: \beta_1 = 0$).}  
+
+Die zugehörige Regressionsgleichung lautet:
+$$tip_i=\beta_0+\beta_1\cdot total\_bill_i+\epsilon_i$$
+Die Höhe der Restaurantrechnung hat genau dann einen Einfluss auf die Trinkgeldhöhe, wenn der Steigungsparameter $\beta_1$ signifikant vopn 0 verschieden ist. Analog zur Korrelationsanalyse empfiehlt sich zunächst eine grafische Darstellung:
+
+```{r}
+xyplot(tip~total_bill, data=tips)
+```
+
+Es folgt die einfache lineare Regression:
+
+```{r}
+linreg <- lm(tip~total_bill, data=tips)
+summary(linreg)
+```
+
+Der Achsenabschnitt (`intercept`) wird mit `r round(coef(linreg)[1],2)` geschätzt, die Steigung in Richtung `total_bill` mit `r round(coef(linreg)[2],2)`: steigt `total_bill` um einen Dollar, steigt im *Durchschnitt* `tip` um `r round(coef(linreg)[2], 2)`. Die (Punkt-)Prognose für `tip` lautet also
+
+`tip` = `r round(coef(linreg)[1],2)` + `r round(coef(linreg)[2],2)` * `total_bill`
+
+In `mosaic` kann ein solches Modell einfach als neue Funktion definiert werden:
+```{r}
+linregFun <- makeFun(linreg)
+```
+
+Die (Punkt-)Prognose für die Trinkgeldhöhe, bspw. für eine Rechnung von 30$ kann dann berechnet werden
+```{r}
+linregFun(total_bill=30)
+```
+
+also `r round(linregFun(total_bill=30),2)`$.
+
+In mosaic kann die Modellgerade über 
+```{r}
+# Streudiagramm mit Regressionsgerade
+plotModel(linreg)
+```
+
+betrachtet werden. Das Bestimmtheitsmaß $R^{2}$ ist mit `r round(summary(linreg)$r.squared,2)` ok: `r round(summary(linreg)$r.squared*100)`% der Variation des Trinkgeldes wird im Modell erklärt.
+
+## Einfache Regressionsdiagnostik
+
+Wie sieht es mit den Annahmen aus? Folgende Annahmen werden üblicherweise geprüft:
+\begin{itemize}
+\item Linearität der Beziehung zwischen den unabhängigen und der abhängigen Variablen.
+\item  Normalverteilung der Residuen.
+\item Homoskedastizität (konstante Varianz) der Residuen.
+\item Keine Autokorrelation der Residuen.
+\item Keine Multikollinearität der unabhängigen Variablen.
+\item Robustheit (Keine Ausreißer).
+\end{itemize}
+
+__Linearität__  
+Die Linearität des Zusammenhangs wurde bereits weiter oben mit Hilfe des Scatterplots "überprüft". Ergänzend kann noch ein RESET-Test durchgeführt werden.
+```{r}
+# RESET-Test auf Fehlspezifikation
+resettest(linreg, 2:4, type="fitted")
+```
+
+__Normalverteilung der Residuen__  
+Zur Überprüfung der Normalverteilung der Residuen zeichnen wir ein Histogramm. Die Residuen können über den Befehl `resid()` aus einem linearen Modell extrahiert werden. Außerdem wird noch ein Shapiro-Qilk-Test durchgeführt und ein QQ-Diagramm erzeugt. Hier scheint die Annahme erfüllt zu sein:
+```{r}
+# Histogramm
+histogram( ~ resid(linreg))
+
+# Normal-Probability-Plot
+qqPlot(resid(linreg), dist="norm", line="quartiles", envelope=FALSE)
+
+# Shapiro-Wilk-Test
+shapiro.test(resid(linreg))
+
+```
+
+__Homoskedastizität__  
+Dies kann z. B. mit einem Scatterplot der Residuen auf der y-Achse und den angepassten Werten auf der x-Achse überprüft werden. Die angepassten Werte werden über den Befehl `fitted()` extrahiert. Ergänzend wird ein Breusch-Pagan-Test durchgeführt. Diese Annahme scheint verletzt zu sein (siehe unten): je größer die Prognose des Trinkgeldes, desto größer wirkt die Streuung der Residuen. Dieses Phänomen ließ sich schon aus dem ursprünglichen Scatterplot `xyplot(tip ~ total_bill, data=tips)` erahnen. Das ist auch inhaltlich plausibel: je höher die Rechnung, desto höher die Varianz beim Trinkgeld. Die Verletzung dieser Annahme beeinflusst *nicht* die Schätzung der Steigung, sondern die Schätzung des Standardfehlers, also des p-Wertes des Hypothesentests, d. h. $H_0:\beta_1=0$. 
+
+```{r}
+# Streudiagramm Residuen gegen fitted values
+xyplot(resid(linreg) ~ fitted(linreg))
+
+# Breusch-Pagan-Test auf Heteroskedastizität
+bptest(linreg)
+```
+
+__Autokorrelation__  
+Hier kann der Residuenplot herangezogen werden, ergänzend wird noch ein Durbin-Watson-Test durchgeführt.
+```{r}
+# Residuenplot
+xyplot(resid(linreg)~1:nrow(tips))
+
+# Durbin-Watson-Test auf Autokorrelation
+dwtest(linreg, alternative="two.sided")
+```
+
+__Robustheit__  
+Wie am Plot der linearen Regression `plotModel(linreg)` erkennbar gibt es vereinzelt Ausreißer nach oben, allerdings ohne einen extremen Hebel.
+
+## Multiple Regression
+Bei mehr als einer unabhängigen Variablen liegt eine multiple Regression vor. Eine grafische Darstellung im Streudiagramm ist nun nicht mehr möglich.
+
+__Beispiel (Trinkgeld-Datensatz)__  
+Folgende zwei Hypothesen sind zu prüfen:  
+\emph{$H_{01}:$ Die Höhe der Restaurantrechnung hat keinen Einfluss auf die Höhe des Trinkgelds ($H_0: \beta_1 = 0$).}   
+\emph{$H_{02}:$ Die Gruppengröße hat keinen Einfluss auf die Höhe des Trinkgelds ($H_0: \beta_2 = 0$).}  
+
+Die zugehörige Regressionsgleichung lautet:
+$$tip_i=\beta_0+\beta_1\cdot total\_bill_i+\beta_2\cdot size_i + \epsilon_i$$
+
+```{r}
+linreg <- lm(tip~total_bill+size, data=tips)
+summary(linreg)
+```
+
+Die Regressionsdiagnostik kann weitgehend wie bei der einfachen linearen Regression durchgeführt werden, mit zwei Unterschieden:
+
+- Zur grafischen Prüfung auf Linearität kann nicht mehr das Streudiagramm zwischen der abhängigen und unabhängigen Variablen verwendet werden. Statt dessen wird der Residuenplot verwendet, mit dem sich auch die Autokorrelation untersuchen lässt.
+```{r}
+# Residuenplot
+xyplot(resid(linreg)~1:nrow(tips))
+```
+
+- Als zusätzliche Modellannahme ist nun auch die Multikollinearität zu prüfen. Hier können die Variance Inflation Factors herangezogen werden.
+
+```{r}
+# Variance Inflation Factors
+vif(linreg)
+```
+
+__Übung__
+
+Prüfen Sie für diese multiple lineare Regression die übrigen Modellannahmen.
+
+
+
+
+
+\newpage
+
+# Literaturhinweise
+
+Adler, J. (2010), R in a Nutshell (deutsche Ausgabe), Köln.
+
+Field, A./Miles, J./Field, Z. (2012): Discovering Statistics Using R, London.
+
+Hatzinger, R./Hornik, K./Nagel, H. /Maier, M. (2014): R – Einführung durch angewandte Statistik, 2. Auflage, München.
+
+Ligges, U. (2008), Programmieren mit R, 3. Auflage, Berlin
+
+Luhmann, M. (2010): R für Einsteiger, Weinheim.
+
+
+# Versionshinweise
+Datum erstellt: `r Sys.Date()`  
+R Version: `r getRversion()`  
+`mosaic` Version: `r packageVersion("mosaic")`  
