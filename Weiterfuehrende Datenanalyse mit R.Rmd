@@ -551,9 +551,12 @@ Field, A./Miles, J./Field, Z. (2012): Discovering Statistics Using R, London.
 
 Hatzinger, R./Hornik, K./Nagel, H. /Maier, M. (2014): R – Einführung durch angewandte Statistik, 2. Auflage, München.
 
+Kaplan, D./Horton, N. J., Pruim, R. (2013): Project MOSAIC Little Books *Start Teaching with R*,  [http://mosaic-web.org/go/Master-Starting.pdf](http://mosaic-web.org/go/Master-Starting.pdf)
+
 Ligges, U. (2008), Programmieren mit R, 3. Auflage, Berlin
 
 Luhmann, M. (2010): R für Einsteiger, Weinheim.
+
 
 
 ```{r child="Epilog.Rmd"}
